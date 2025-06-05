@@ -112,3 +112,5 @@ src/main/resources/**/*.example
 src/main/resources/**/*.examples
 src/main/resources/**/example.*
 src/main/resources/**/examples.* 
+
+logs/
