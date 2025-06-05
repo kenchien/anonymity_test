@@ -1,0 +1,7 @@
+POST http://localhost:8089/api/anonymity/anonymizeTest 
+content-type: application/json
+{
+    "dataSize":5000,
+    "k": 3,
+    "l": 2
+}
