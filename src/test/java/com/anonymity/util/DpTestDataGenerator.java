@@ -49,7 +49,7 @@ public class DpTestDataGenerator {
             //row.put("郵遞區號", String.valueOf(zipcode));
             
             // 生成縣市
-            //row.put("縣市", CITIES[random.nextInt(CITIES.length)]);
+            row.put("縣市", CITIES[random.nextInt(CITIES.length)]);
             
 
             // 生成通報日期 (過去30天內)

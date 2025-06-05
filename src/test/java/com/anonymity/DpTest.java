@@ -232,13 +232,13 @@ public class DpTest {
     @Test
     public void testDpDependentLoop() throws Exception {
         // 定義要測試的 epsilon 和 delta 值
-        //double[] epsilons = {6.0,5.0,4.0,3.0, 2.0, 1.0};
-        //double[] deltas = {0.99, 0.9, 0.7, 0.5, 0.3, 0.1};
-        double[] epsilons = {4.0};
-        double[] deltas = { 0.9, 0.7, 0.5};
+        double[] epsilons = {6.0,5.0,4.0,3.0, 2.0, 1.0};
+        double[] deltas = {0.99, 0.9, 0.7, 0.5, 0.3, 0.1};
+        //double[] epsilons = {4.0};
+        //double[] deltas = { 0.9, 0.7, 0.5};
 
         // 生成測試數據
-        List<Map<String, String>> testData = DpTestDataGenerator.generateTestData(200);
+        List<Map<String, String>> testData = DpTestDataGenerator.generateTestData(20000);
         
         // 儲存原始資料（只儲存一次）
         String originalFilePath = String.format("C:\\Ken\\ori_dp_%d.xlsx", testData.size());
@@ -296,9 +296,9 @@ public class DpTest {
                     
                     // 獲取響應內容
                     String responseContent = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-                    System.out.println("\n=== 響應內容編碼檢查 ===");
-                    System.out.println("響應內容編碼：" + StandardCharsets.UTF_8.name());
-                    System.out.println("響應內容：" + responseContent.substring(0, Math.min(100, responseContent.length())));
+                    // System.out.println("\n=== 響應內容編碼檢查 ===");
+                    // System.out.println("響應內容編碼：" + StandardCharsets.UTF_8.name());
+                    // System.out.println("響應內容：" + responseContent.substring(0, Math.min(100, responseContent.length())));
 
                     // 解析響應
                     Map<String, Object> response = objectMapper.readValue(responseContent, Map.class);
@@ -306,12 +306,12 @@ public class DpTest {
                     List<List<String>> anonymizedData = (List<List<String>>) response.get("result");
 
                     // 檢查匿名化資料的編碼
-                    System.out.println("\n=== 匿名化資料編碼檢查 ===");
-                    if (!anonymizedData.isEmpty() && !anonymizedData.get(0).isEmpty()) {
-                        String sampleData = anonymizedData.get(0).get(0);
-                        System.out.println("匿名化資料編碼：" + StandardCharsets.UTF_8.name());
-                        System.out.println("匿名化資料範例：" + sampleData);
-                    }
+                    // System.out.println("\n=== 匿名化資料編碼檢查 ===");
+                    // if (!anonymizedData.isEmpty() && !anonymizedData.get(0).isEmpty()) {
+                    //     String sampleData = anonymizedData.get(0).get(0);
+                    //     System.out.println("匿名化資料編碼：" + StandardCharsets.UTF_8.name());
+                    //     System.out.println("匿名化資料範例：" + sampleData);
+                    // }
                     
                     // 計算並顯示隱私指標
                     Map<String, Double> metrics = PrivacyMetricsCalculator.calculateMetrics(testData, anonymizedData);
@@ -321,27 +321,38 @@ public class DpTest {
                     int ageAnonymizedCount = 0;
                     int genderAnonymizedCount = 0;
                     int dateAnonymizedCount = 0;
-                    int confirmAnonymizedCount = 0;
+                    int cityAnonymizedCount = 0;
                     
-                    // 取得欄位索引
-                    List<String> headers = anonymizedData.get(0);
-                    System.out.println("匿名化資料欄位: " + String.join(", ", headers));
+                    // 取得原始欄位名稱
+                    List<String> originalHeaders = new ArrayList<>(testData.get(0).keySet());
+                    // System.out.println("原始資料欄位: " + String.join(", ", originalHeaders));
                     
                     // 檢查欄位數量
-                    if (headers.size() < 4) {
-                        System.out.println("警告：匿名化資料欄位數量不足，跳過此測試案例");
+                    if (originalHeaders.size() < 4) {
+                        System.out.println("警告：原始資料欄位數量不足，跳過此測試案例");
                         continue;
                     }
                     
-                    // 假設欄位順序為：年齡、性別、通報日期、是否確診
-                    int ageIndex = 0;        // 年齡
-                    int genderIndex = 1;     // 性別
-                    int dateIndex = 2;       // 通報日期
-                    int confirmIndex = 3;    // 是否確診
+                    // 根據原始欄位名稱設定索引
+                    int ageIndex = originalHeaders.indexOf("年齡");
+                    int genderIndex = originalHeaders.indexOf("性別");
+                    int dateIndex = originalHeaders.indexOf("通報日期");
+                    int cityIndex = originalHeaders.indexOf("縣市");
+                    
+                    // 檢查是否找到所有需要的欄位
+                    if (ageIndex == -1 || genderIndex == -1 || dateIndex == -1 || cityIndex == -1) {
+                        System.out.println("警告：找不到必要的欄位，跳過此測試案例");
+                        // System.out.println("找到的欄位索引：");
+                        // System.out.println("年齡: " + ageIndex);
+                        // System.out.println("性別: " + genderIndex);
+                        // System.out.println("通報日期: " + dateIndex);
+                        // System.out.println("縣市: " + cityIndex);
+                        continue;
+                    }
                     
                     // 檢查是否所有欄位都被匿名化
                     boolean allColumnsAnonymized = true;
-                    for (String header : headers) {
+                    for (String header : originalHeaders) {
                         if (!header.equals("*")) {
                             allColumnsAnonymized = false;
                             break;
@@ -350,11 +361,11 @@ public class DpTest {
                     
                     if (allColumnsAnonymized) {
                         // 如果所有欄位都被匿名化，則所有筆數都計入各欄位的匿名化筆數
-                        ageAnonymizedCount = anonymizedData.size();  // 減去標題行
-                        genderAnonymizedCount = anonymizedData.size();
-                        dateAnonymizedCount = anonymizedData.size();
-                        confirmAnonymizedCount = anonymizedData.size();
-                        fullyAnonymizedCount = anonymizedData.size();
+                        ageAnonymizedCount = anonymizedData.size() - 1;  // 減去標題行
+                        genderAnonymizedCount = anonymizedData.size() - 1;
+                        dateAnonymizedCount = anonymizedData.size() - 1;
+                        cityAnonymizedCount = anonymizedData.size() - 1;
+                        fullyAnonymizedCount = anonymizedData.size() - 1;
                     } else {
                         // 正常處理每筆資料
                         for (int i = 1; i < anonymizedData.size(); i++) {
@@ -376,7 +387,7 @@ public class DpTest {
                             if (row.get(ageIndex).equals("*")) ageAnonymizedCount++;
                             if (row.get(genderIndex).equals("*")) genderAnonymizedCount++;
                             if (row.get(dateIndex).equals("*")) dateAnonymizedCount++;
-                            if (row.get(confirmIndex).equals("*")) confirmAnonymizedCount++;
+                            if (row.get(cityIndex).equals("*")) cityAnonymizedCount++;
                         }
                     }
                     
@@ -386,12 +397,12 @@ public class DpTest {
                     if (ageAnonymizedCount == testData.size() ||
                         genderAnonymizedCount == testData.size() ||
                         dateAnonymizedCount == testData.size() ||
-                        confirmAnonymizedCount == testData.size() ||
+                        cityAnonymizedCount == testData.size() ||
                         fullyAnonymizedCount == testData.size() ||
                         ageAnonymizedCount > threshold ||
                         genderAnonymizedCount > threshold ||
                         dateAnonymizedCount > threshold ||
-                        confirmAnonymizedCount > threshold ||
+                        cityAnonymizedCount > threshold ||
                         fullyAnonymizedCount > threshold) {
                         isUsable = 0;
                     }
@@ -407,7 +418,7 @@ public class DpTest {
                     testResult.put("年齡匿名筆數", ageAnonymizedCount);
                     testResult.put("性別匿名筆數", genderAnonymizedCount);
                     testResult.put("通報日期匿名筆數", dateAnonymizedCount);
-                    testResult.put("是否確診匿名筆數", confirmAnonymizedCount);
+                    testResult.put("縣市匿名筆數", cityAnonymizedCount);
                     testResult.put("信息損失", metrics.get("informationLoss"));
                     testResult.put("效用損失", metrics.get("utilityLoss"));
                     testResult.put("隱私保障", metrics.get("privacyGuarantee"));
@@ -420,7 +431,7 @@ public class DpTest {
                     System.out.printf("年齡匿名: %d,", ageAnonymizedCount);
                     System.out.printf("性別匿名: %d,", genderAnonymizedCount);
                     System.out.printf("通報日期匿名: %d,", dateAnonymizedCount);
-                    System.out.printf("是否確診匿名: %d,", confirmAnonymizedCount);
+                    System.out.printf("縣市匿名: %d,", cityAnonymizedCount);
                     System.out.printf("信息損失: %.2f,", metrics.get("informationLoss"));
                     System.out.printf("效用損失: %.2f,", metrics.get("utilityLoss"));
                     System.out.printf("隱私保障: %.2f%n", metrics.get("privacyGuarantee"));
@@ -465,7 +476,7 @@ public class DpTest {
                 "年齡匿名筆數",
                 "性別匿名筆數",
                 "通報日期匿名筆數",
-                "是否確診匿名筆數",
+                "縣市匿名筆數",
                 "信息損失", 
                 "效用損失", 
                 "隱私保障", 
@@ -492,7 +503,7 @@ public class DpTest {
                 row.createCell(col++).setCellValue((Integer) result.get("年齡匿名筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("性別匿名筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("通報日期匿名筆數"));
-                row.createCell(col++).setCellValue((Integer) result.get("是否確診匿名筆數"));
+                row.createCell(col++).setCellValue((Integer) result.get("縣市匿名筆數"));
                 row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("信息損失")));
                 row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("效用損失")));
                 row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("隱私保障")));
@@ -538,7 +549,7 @@ public class DpTest {
                 "年齡匿名筆數",
                 "性別匿名筆數",
                 "通報日期匿名筆數",
-                "是否確診匿名筆數",
+                "縣市匿名筆數",
                 "信息損失", 
                 "效用損失", 
                 "隱私保障", 
@@ -560,7 +571,7 @@ public class DpTest {
                 row.add(String.valueOf(result.get("年齡匿名筆數")));
                 row.add(String.valueOf(result.get("性別匿名筆數")));
                 row.add(String.valueOf(result.get("通報日期匿名筆數")));
-                row.add(String.valueOf(result.get("是否確診匿名筆數")));
+                row.add(String.valueOf(result.get("縣市匿名筆數")));
                 row.add(String.format("%.2f", (Double) result.get("信息損失")));
                 row.add(String.format("%.2f", (Double) result.get("效用損失")));
                 row.add(String.format("%.2f", (Double) result.get("隱私保障")));

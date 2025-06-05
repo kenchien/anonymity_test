@@ -25,8 +25,8 @@ public class DifferentialPrivacyService {
     }
     
     private void setupHierarchies(Data.DefaultData arxData, String[] attributes) {
-        System.out.println("\n=== 開始設定欄位類型與泛化層級 ===");
-        System.out.println("總欄位數：" + attributes.length);
+        // System.out.println("\n=== 開始設定欄位類型與泛化層級 ===");
+        // System.out.println("總欄位數：" + attributes.length);
         
         // 定義年齡層級
         DefaultHierarchy ageHierarchy = Hierarchy.create();
@@ -135,70 +135,69 @@ public class DifferentialPrivacyService {
             }
         }
 
-        System.out.println("\n=== 欄位設定詳情 ===");
+        // System.out.println("\n=== 欄位設定詳情 ===");
         // 根據欄位名稱設定屬性型態和層級
         for (String attribute : attributes) {
-            System.out.println("\n處理欄位：" + attribute);
+            // System.out.println("\n處理欄位：" + attribute);
             switch (attribute) {
                 case "年齡":
                     arxData.getDefinition().setAttributeType(attribute, AttributeType.QUASI_IDENTIFYING_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.INTEGER);
                     arxData.getDefinition().setAttributeType(attribute, ageHierarchy);
-                    System.out.println("  - 類型：準識別欄位");
-                    System.out.println("  - 資料型態：整數");
-                    System.out.println("  - 泛化層級：年齡層級（0-99歲，5年/10年/年齡組）");
+                    // System.out.println("  - 類型：準識別欄位");
+                    // System.out.println("  - 資料型態：整數");
+                    // System.out.println("  - 泛化層級：年齡層級（0-99歲，5年/10年/年齡組）");
                     break;
                 case "性別":
                     arxData.getDefinition().setAttributeType(attribute, AttributeType.QUASI_IDENTIFYING_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.STRING);
                     arxData.getDefinition().setAttributeType(attribute, genderHierarchy);
-                    System.out.println("  - 類型：準識別欄位");
-                    System.out.println("  - 資料型態：字串");
-                    System.out.println("  - 泛化層級：性別層級（男/女）");
+                    // System.out.println("  - 類型：準識別欄位");
+                    // System.out.println("  - 資料型態：字串");
+                    // System.out.println("  - 泛化層級：性別層級（男/女）");
                     break;
                 case "縣市":
                     arxData.getDefinition().setAttributeType(attribute, AttributeType.QUASI_IDENTIFYING_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.STRING);
                     arxData.getDefinition().setAttributeType(attribute, cityHierarchy);
-                    System.out.println("  - 類型：準識別欄位");
-                    System.out.println("  - 資料型態：字串");
-                    System.out.println("  - 泛化層級：縣市層級（縣市/區域/台灣）");
+                    // System.out.println("  - 類型：準識別欄位");
+                    // System.out.println("  - 資料型態：字串");
+                    // System.out.println("  - 泛化層級：縣市層級（縣市/區域/台灣）");
                     break;
                 case "郵遞區號":
                     arxData.getDefinition().setAttributeType(attribute, AttributeType.QUASI_IDENTIFYING_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.DECIMAL);
                     arxData.getDefinition().setAttributeType(attribute, zipHierarchy);
-                    System.out.println("  - 類型：準識別欄位");
-                    System.out.println("  - 資料型態：小數");
-                    System.out.println("  - 泛化層級：郵遞區號層級（3位數/百位數）");
-                    break;
-                case "是否確診":
-                    arxData.getDefinition().setAttributeType(attribute, AttributeType.QUASI_IDENTIFYING_ATTRIBUTE);
-                    arxData.getDefinition().setDataType(attribute, DataType.INTEGER);
-                    arxData.getDefinition().setAttributeType(attribute, confirmHierarchy);
-                    System.out.println("  - 類型：準識別欄位");
-                    System.out.println("  - 資料型態：整數");
-                    System.out.println("  - 泛化層級：是否確診層級（0/1）");
+                    // System.out.println("  - 類型：準識別欄位");
+                    // System.out.println("  - 資料型態：小數");
+                    // System.out.println("  - 泛化層級：郵遞區號層級（3位數/百位數）");
                     break;
                 case "通報日期":
-                    arxData.getDefinition().setAttributeType(attribute, AttributeType.INSENSITIVE_ATTRIBUTE);
+                    arxData.getDefinition().setAttributeType(attribute, AttributeType.QUASI_IDENTIFYING_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.DATE);
                     arxData.getDefinition().setAttributeType(attribute, dateHierarchy);
-                    System.out.println("  - 類型：非敏感欄位");
-                    System.out.println("  - 資料型態：日期");
-                    System.out.println("  - 泛化層級：日期層級（日/月/季/年/十年）");
+                    // System.out.println("  - 類型：準識別欄位");
+                    // System.out.println("  - 資料型態：日期");
+                    // System.out.println("  - 泛化層級：日期層級（日/月/季/年/十年）");
+                    break;
+                case "是否確診":
+                    arxData.getDefinition().setAttributeType(attribute, AttributeType.SENSITIVE_ATTRIBUTE);
+                    arxData.getDefinition().setDataType(attribute, DataType.INTEGER);
+                    // System.out.println("  - 類型：敏感欄位");
+                    // System.out.println("  - 資料型態：整數");
+                    // System.out.println("  - 說明：確診狀態為敏感資訊");
                     break;
                 default:
                     // 未定義泛化層級的欄位設為敏感欄位
                     arxData.getDefinition().setAttributeType(attribute, AttributeType.SENSITIVE_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.STRING);
-                    System.out.println("  - 類型：敏感欄位（未定義泛化層級）");
-                    System.out.println("  - 資料型態：字串");
-                    System.out.println("  - 警告：此欄位未定義泛化層級，已設為敏感欄位");
+                    // System.out.println("  - 類型：敏感欄位（未定義泛化層級）");
+                    // System.out.println("  - 資料型態：字串");
+                    // System.out.println("  - 警告：此欄位未定義泛化層級，已設為敏感欄位");
                     break;
             }
         }
-        System.out.println("\n=== 欄位設定完成 ===");
+        // System.out.println("\n=== 欄位設定完成 ===");
     }
 
     public Map<String, Object> applyDifferentialPrivacy(String data, double epsilon, double delta, boolean isDataIndependent) {
@@ -233,6 +232,11 @@ public class DifferentialPrivacyService {
             ARXConfiguration config = ARXConfiguration.create();
             config.setSuppressionLimit(0.2d);
             config.setHeuristicSearchTimeLimit(60); // 設定 60 秒超時
+            
+            // 為直接標記為敏感屬性的欄位添加隱私模型
+            for (String attribute : arxData.getDefinition().getSensitiveAttributes()) {
+                config.addPrivacyModel(new EntropyLDiversity(attribute, 2));
+            }
             
             if (isDataIndependent) {
                 // 資料獨立差分隱私
