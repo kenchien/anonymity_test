@@ -51,17 +51,17 @@ public class DpTestDataGenerator {
             // 生成縣市
             //row.put("縣市", CITIES[random.nextInt(CITIES.length)]);
             
-            // 生成是否確診
-            boolean isConfirmed = random.nextBoolean();
-            row.put("是否確診", isConfirmed ? "1" : "0");
 
             // 生成通報日期 (過去30天內)
             LocalDate reportDate = startDate.plusDays(random.nextInt(30));
             row.put("通報日期", reportDate.format(dateFormatter));
            
+            // 生成是否確診
+            boolean isConfirmed = random.nextBoolean();
+            row.put("是否確診", isConfirmed ? "1" : "0");
 
             // 生成疾病
-            //row.put("疾病", DISEASES[random.nextInt(DISEASES.length)]);
+            row.put("疾病", DISEASES[random.nextInt(DISEASES.length)]);
             
              
             // 生成檢驗結果
