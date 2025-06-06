@@ -162,17 +162,8 @@
                         <include>**/*TestCase.java</include>
                     </includes>
                     <argLine>
-                        -Xms2g -Xmx4g 
-                        -XX:+UseG1GC 
-                        -XX:MaxGCPauseMillis=200 
-                        -XX:G1HeapRegionSize=16m 
-                        -XX:InitiatingHeapOccupancyPercent=35 
-                        -XX:+UseStringDeduplication 
-                        -XX:+OptimizeStringConcat 
-                        -XX:+UseCompressedOops 
-                        -XX:+PrintGCDetails 
-                        -XX:+PrintGCDateStamps 
-                        -Xloggc:gc.log
+                        -Xms256m -Xmx1g 
+                        -XX:+UseParallelGC
                     </argLine>
                 </configuration>
             </plugin>
