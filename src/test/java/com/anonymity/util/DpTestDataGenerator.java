@@ -30,12 +30,42 @@ public class DpTestDataGenerator {
     private static final Random random = new Random();
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
     
+    // 身分證字號生成相關常數
+    private static final String[] AREA_CODES = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+    private static final int[] AREA_WEIGHTS = {10, 11, 12, 13, 14, 15, 16, 17, 34, 18, 19, 20, 21, 22, 35, 23, 24, 25, 26, 27, 28, 29, 32, 30, 31, 33};
+    
+    // 生成有效的台灣身分證字號
+    private static String generateTaiwanID() {
+        // 隨機選擇地區代碼
+        int areaIndex = random.nextInt(AREA_CODES.length);
+        String areaCode = AREA_CODES[areaIndex];
+        int areaWeight = AREA_WEIGHTS[areaIndex];
+        
+        // 生成8位數字
+        StringBuilder numbers = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            numbers.append(random.nextInt(10));
+        }
+        
+        // 計算檢查碼
+        int sum = (areaWeight / 10) + (areaWeight % 10 * 9);
+        for (int i = 0; i < 8; i++) {
+            sum += (numbers.charAt(i) - '0') * (8 - i);
+        }
+        int checkDigit = (10 - (sum % 10)) % 10;
+        
+        return areaCode + numbers + checkDigit;
+    }
+    
     public static List<Map<String, String>> generateTestData(int count) {
         List<Map<String, String>> data = new ArrayList<>();
         LocalDate startDate = LocalDate.now().minusDays(30);
         
         for (int i = 0; i < count; i++) {
             Map<String, String> row = new HashMap<>();
+            
+            // 生成身分證字號
+            row.put("身分證", generateTaiwanID());
             
             // 生成年齡
             int age = 5 + random.nextInt(41);
@@ -49,7 +79,7 @@ public class DpTestDataGenerator {
             //row.put("郵遞區號", String.valueOf(zipcode));
             
             // 生成縣市
-            row.put("縣市", CITIES[random.nextInt(CITIES.length)]);
+            //row.put("縣市", CITIES[random.nextInt(3)]);//CITIES.length
             
 
             // 生成通報日期 (過去30天內)
@@ -61,7 +91,7 @@ public class DpTestDataGenerator {
             row.put("是否確診", isConfirmed ? "1" : "0");
 
             // 生成疾病
-            row.put("疾病", DISEASES[random.nextInt(DISEASES.length)]);
+            //row.put("疾病", DISEASES[random.nextInt(DISEASES.length)]);
             
              
             // 生成檢驗結果

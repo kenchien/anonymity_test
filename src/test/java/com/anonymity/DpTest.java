@@ -4,6 +4,7 @@ import com.anonymity.controller.dto.DifferentialPrivacyRequest;
 import com.anonymity.util.DpTestDataGenerator;
 import com.anonymity.util.PrivacyMetricsCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,6 +17,10 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.application.Application;
+import javafx.stage.Stage;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -40,10 +45,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.XYChart;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class DpTest {
+public class DpTest extends Application {
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,7 +75,23 @@ public class DpTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    
+    @BeforeAll
+    public static void initJavaFX() {
+        // 初始化 JavaFX
+        new JFXPanel();
+        // 等待 JavaFX 初始化完成
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        // 這個方法需要被實現，但我們不需要使用它
+    }
+
     @Test
     public void testDpDependent() throws Exception {
         // 生成測試數據
@@ -123,8 +163,8 @@ public class DpTest {
         saveAnonymizedToExcel(anonymizedData, anonymizedFilePath);
         
         System.out.println("\n=== 資料儲存完成 ===");
-        System.out.println("原始資料: " + originalFilePath);
-        System.out.println("匿名化結果: " + anonymizedFilePath);
+        //System.out.println("原始資料: " + originalFilePath);
+        //System.out.println("匿名化結果: " + anonymizedFilePath);
     }
 
     @Test
@@ -190,8 +230,8 @@ public class DpTest {
         saveAnonymizedToExcel(anonymizedData, anonymizedFilePath);
         
         System.out.println("\n=== 資料儲存完成 ===");
-        System.out.println("原始資料: " + originalFilePath);
-        System.out.println("匿名化結果: " + anonymizedFilePath);
+        //System.out.println("原始資料: " + originalFilePath);
+        //System.out.println("匿名化結果: " + anonymizedFilePath);
     }
 
     @Test
@@ -232,13 +272,13 @@ public class DpTest {
     @Test
     public void testDpDependentLoop() throws Exception {
         // 定義要測試的 epsilon 和 delta 值
-        double[] epsilons = {6.0,5.0,4.0,3.0, 2.0, 1.0};
-        double[] deltas = {0.99, 0.9, 0.7, 0.5, 0.3, 0.1};
-        //double[] epsilons = {4.0};
-        //double[] deltas = { 0.9, 0.7, 0.5};
+        //double[] epsilons = {5.0,4.0,3.0, 2.0};
+        //double[] deltas = {0.9, 0.7, 0.5, 0.3};
+        double[] epsilons = {4.0,3.0};
+        double[] deltas = { 0.9, 0.7, 0.5};
 
         // 生成測試數據
-        List<Map<String, String>> testData = DpTestDataGenerator.generateTestData(20000);
+        List<Map<String, String>> testData = DpTestDataGenerator.generateTestData(2000);
         
         // 儲存原始資料（只儲存一次）
         String originalFilePath = String.format("C:\\Ken\\ori_dp_%d.xlsx", testData.size());
@@ -255,12 +295,13 @@ public class DpTest {
         int testCount = 0;
         for (double epsilon : epsilons) {
             for (double delta : deltas) {
-                testCount++;
-                System.out.printf("\n執行第 %d/35 次測試 (epsilon=%.2f, delta=%.5f)%n", 
-                    testCount, epsilon, delta);
-                
+                                
                 if(epsilon==6.0 && delta==0.1){
                     continue;
+                }else{
+                    testCount++;
+                    System.out.printf("\n執行第 %d/%d 次測試 (epsilon=%.2f, delta=%.5f)%n", 
+                        testCount,epsilons.length * deltas.length-1, epsilon, delta);
                 }
 
                 // 設置 ObjectMapper 使用 UTF-8
@@ -272,13 +313,8 @@ public class DpTest {
                 request.setDelta(delta);
                 request.setIsDataIndependent(false);
 
-                // 檢查 testData 的編碼
                 String testDataJson = objectMapper.writeValueAsString(testData);
-                System.out.println("\n=== 測試資料編碼檢查 ===");
-                System.out.println("testData JSON 編碼：" + StandardCharsets.UTF_8.name());
-                System.out.println("testData JSON 內容：" + testDataJson.substring(0, Math.min(100, testDataJson.length())));
-
-                request.setData(testDataJson);
+                 request.setData(testDataJson);
 
                 // 記錄開始時間
                 Instant startTime = Instant.now();
@@ -327,28 +363,14 @@ public class DpTest {
                     List<String> originalHeaders = new ArrayList<>(testData.get(0).keySet());
                     // System.out.println("原始資料欄位: " + String.join(", ", originalHeaders));
                     
-                    // 檢查欄位數量
-                    if (originalHeaders.size() < 4) {
-                        System.out.println("警告：原始資料欄位數量不足，跳過此測試案例");
-                        continue;
-                    }
                     
                     // 根據原始欄位名稱設定索引
                     int ageIndex = originalHeaders.indexOf("年齡");
                     int genderIndex = originalHeaders.indexOf("性別");
                     int dateIndex = originalHeaders.indexOf("通報日期");
-                    int cityIndex = originalHeaders.indexOf("縣市");
+                    //int cityIndex = originalHeaders.indexOf("縣市");
                     
-                    // 檢查是否找到所有需要的欄位
-                    if (ageIndex == -1 || genderIndex == -1 || dateIndex == -1 || cityIndex == -1) {
-                        System.out.println("警告：找不到必要的欄位，跳過此測試案例");
-                        // System.out.println("找到的欄位索引：");
-                        // System.out.println("年齡: " + ageIndex);
-                        // System.out.println("性別: " + genderIndex);
-                        // System.out.println("通報日期: " + dateIndex);
-                        // System.out.println("縣市: " + cityIndex);
-                        continue;
-                    }
+                    
                     
                     // 檢查是否所有欄位都被匿名化
                     boolean allColumnsAnonymized = true;
@@ -361,11 +383,11 @@ public class DpTest {
                     
                     if (allColumnsAnonymized) {
                         // 如果所有欄位都被匿名化，則所有筆數都計入各欄位的匿名化筆數
-                        ageAnonymizedCount = anonymizedData.size() - 1;  // 減去標題行
-                        genderAnonymizedCount = anonymizedData.size() - 1;
-                        dateAnonymizedCount = anonymizedData.size() - 1;
-                        cityAnonymizedCount = anonymizedData.size() - 1;
-                        fullyAnonymizedCount = anonymizedData.size() - 1;
+                        ageAnonymizedCount = anonymizedData.size();  // 減去標題行
+                        genderAnonymizedCount = anonymizedData.size();
+                        dateAnonymizedCount = anonymizedData.size();
+                        //cityAnonymizedCount = anonymizedData.size();
+                        fullyAnonymizedCount = anonymizedData.size();
                     } else {
                         // 正常處理每筆資料
                         for (int i = 1; i < anonymizedData.size(); i++) {
@@ -387,7 +409,7 @@ public class DpTest {
                             if (row.get(ageIndex).equals("*")) ageAnonymizedCount++;
                             if (row.get(genderIndex).equals("*")) genderAnonymizedCount++;
                             if (row.get(dateIndex).equals("*")) dateAnonymizedCount++;
-                            if (row.get(cityIndex).equals("*")) cityAnonymizedCount++;
+                            //if (row.get(cityIndex).equals("*")) cityAnonymizedCount++;
                         }
                     }
                     
@@ -397,12 +419,12 @@ public class DpTest {
                     if (ageAnonymizedCount == testData.size() ||
                         genderAnonymizedCount == testData.size() ||
                         dateAnonymizedCount == testData.size() ||
-                        cityAnonymizedCount == testData.size() ||
+                        //cityAnonymizedCount == testData.size() ||
                         fullyAnonymizedCount == testData.size() ||
                         ageAnonymizedCount > threshold ||
                         genderAnonymizedCount > threshold ||
                         dateAnonymizedCount > threshold ||
-                        cityAnonymizedCount > threshold ||
+                        //cityAnonymizedCount > threshold ||
                         fullyAnonymizedCount > threshold) {
                         isUsable = 0;
                     }
@@ -418,7 +440,7 @@ public class DpTest {
                     testResult.put("年齡匿名筆數", ageAnonymizedCount);
                     testResult.put("性別匿名筆數", genderAnonymizedCount);
                     testResult.put("通報日期匿名筆數", dateAnonymizedCount);
-                    testResult.put("縣市匿名筆數", cityAnonymizedCount);
+                    //testResult.put("縣市匿名筆數", cityAnonymizedCount);
                     testResult.put("信息損失", metrics.get("informationLoss"));
                     testResult.put("效用損失", metrics.get("utilityLoss"));
                     testResult.put("隱私保障", metrics.get("privacyGuarantee"));
@@ -431,7 +453,7 @@ public class DpTest {
                     System.out.printf("年齡匿名: %d,", ageAnonymizedCount);
                     System.out.printf("性別匿名: %d,", genderAnonymizedCount);
                     System.out.printf("通報日期匿名: %d,", dateAnonymizedCount);
-                    System.out.printf("縣市匿名: %d,", cityAnonymizedCount);
+                    //System.out.printf("縣市匿名: %d,", cityAnonymizedCount);
                     System.out.printf("信息損失: %.2f,", metrics.get("informationLoss"));
                     System.out.printf("效用損失: %.2f,", metrics.get("utilityLoss"));
                     System.out.printf("隱私保障: %.2f%n", metrics.get("privacyGuarantee"));
@@ -440,7 +462,7 @@ public class DpTest {
                     String anonymizedFilePath = String.format("C:\\Ken\\dp_%.1f_%.2f_%d.xlsx", epsilon, delta, testData.size());
                     saveAnonymizedToExcel(anonymizedData, anonymizedFilePath);
                 } catch (Exception e) {
-                    System.out.printf("測試執行時發生錯誤 (epsilon=%.2f, delta=%.5f): %s%n", 
+                    System.out.printf("測試執行時發生錯誤 (epsilon=%.1f, delta=%.2f) %s", 
                         epsilon, delta, e.getMessage());
                     continue;
                 }
@@ -450,14 +472,41 @@ public class DpTest {
         // 儲存所有測試結果到一個 Excel 檔案
         String summaryFilePath = "C:\\Ken\\dp_test_summary.xlsx";
         saveTestResultsToExcel(testResults, summaryFilePath);
-        System.out.println("\n=== 測試結果摘要已儲存至: " + summaryFilePath);
+        //System.out.println("\n=== 測試結果摘要已儲存至: " + summaryFilePath);
         
         // 同時儲存為 TXT 檔案
         String txtFilePath = "C:\\Ken\\dp_test_summary.txt";
         saveTestResultsToTxt(testResults, txtFilePath);
-        System.out.println("=== 測試結果摘要已儲存至: " + txtFilePath);
+        //System.out.println("=== 測試結果摘要已儲存至: " + txtFilePath);
         
-        System.out.println("\n=== 所有測試完成 ===");
+        //System.out.println("\n=== 所有測試完成 ===");
+
+        // 修改開啟儀表板的部分
+        try {
+            // 確保在 JavaFX 應用程式執行緒中執行
+            Platform.runLater(() -> {
+                try {
+                    showDashboard(testResults);
+                } catch (Exception e) {
+                    System.err.println("開啟儀表板時發生錯誤: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
+            
+            // 等待儀表板顯示
+            Thread.sleep(2000);
+            
+            // 保持 JavaFX 執行緒運行
+            while (true) {
+                Thread.sleep(1000);
+                if (Platform.isFxApplicationThread()) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("初始化儀表板時發生錯誤: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     private void saveTestResultsToExcel(List<Map<String, Object>> results, String filePath) throws IOException {
@@ -476,7 +525,6 @@ public class DpTest {
                 "年齡匿名筆數",
                 "性別匿名筆數",
                 "通報日期匿名筆數",
-                "縣市匿名筆數",
                 "信息損失", 
                 "效用損失", 
                 "隱私保障", 
@@ -503,7 +551,6 @@ public class DpTest {
                 row.createCell(col++).setCellValue((Integer) result.get("年齡匿名筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("性別匿名筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("通報日期匿名筆數"));
-                row.createCell(col++).setCellValue((Integer) result.get("縣市匿名筆數"));
                 row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("信息損失")));
                 row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("效用損失")));
                 row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("隱私保障")));
@@ -647,11 +694,11 @@ public class DpTest {
         }
 
         // 檢查資料編碼
-        System.out.println("\n=== Excel 儲存編碼檢查 ===");
+        //System.out.println("\n=== Excel 儲存編碼檢查 ===");
         if (!data.isEmpty() && !data.get(0).isEmpty()) {
             String sampleData = data.get(0).get(0);
-            System.out.println("Excel 儲存編碼：" + StandardCharsets.UTF_8.name());
-            System.out.println("儲存資料範例：" + sampleData);
+            //System.out.println("Excel 儲存編碼：" + StandardCharsets.UTF_8.name());
+            //System.out.println("儲存資料範例：" + sampleData);
         }
         
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -663,7 +710,7 @@ public class DpTest {
                 Row row = sheet.createRow(i);
                 List<String> rowData = data.get(i);
                 if(i<3){
-                    System.out.println("寫入第 " + (i+1) + " 行資料：" + rowData);
+                    //System.out.println("寫入第 " + (i+1) + " 行資料：" + rowData);
                 }
                 for (int j = 0; j < rowData.size(); j++) {
                     Cell cell = row.createCell(j);
@@ -736,6 +783,326 @@ public class DpTest {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private ScatterChart<Number, Number> createPrivacyChart(List<Map<String, Object>> results) {
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("信息損失");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("隱私保障");
+
+        ScatterChart<Number, Number> chart = new ScatterChart<>(xAxis, yAxis);
+        
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        series.setName("測試結果");
+
+        for (Map<String, Object> result : results) {
+            double informationLoss = (Double) result.get("信息損失");
+            double privacyGuarantee = (Double) result.get("隱私保障");
+            series.getData().add(new XYChart.Data<>(informationLoss, privacyGuarantee));
+        }
+
+        chart.getData().add(series);
+        return chart;
+    }
+
+    private ScatterChart<Number, Number> createTimeChart(List<Map<String, Object>> results) {
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("資料筆數");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("執行時間(毫秒)");
+
+        ScatterChart<Number, Number> chart = new ScatterChart<>(xAxis, yAxis);
+        
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        series.setName("執行時間");
+
+        for (Map<String, Object> result : results) {
+            int dataSize = (Integer) result.get("資料筆數");
+            long executionTime = (Long) result.get("執行時間(毫秒)");
+            series.getData().add(new XYChart.Data<>(dataSize, executionTime));
+        }
+
+        chart.getData().add(series);
+        return chart;
+    }
+
+    private TableView<Map<String, Object>> createSummaryTable(List<Map<String, Object>> results) {
+        TableView<Map<String, Object>> table = new TableView<>();
+
+        // 創建表格列
+        String[] columns = {
+            "epsilon", "delta", "資料筆數", "執行時間(毫秒)", 
+            "完全匿名化筆數", "年齡匿名筆數", "性別匿名筆數", 
+            "通報日期匿名筆數", "信息損失", 
+            "效用損失", "隱私保障", "是否可用"
+        };
+
+        for (String column : columns) {
+            TableColumn<Map<String, Object>, String> tableColumn = new TableColumn<>(column);
+            tableColumn.setCellValueFactory(data -> {
+                Object value = data.getValue().get(column);
+                if (value == null) {
+                    return new SimpleStringProperty("");
+                }
+                
+                // 根據不同類型的值進行格式化
+                if (value instanceof Double) {
+                    return new SimpleStringProperty(String.format("%.2f", (Double) value));
+                } else if (value instanceof Float) {
+                    return new SimpleStringProperty(String.format("%.2f", (Float) value));
+                } else if (value instanceof Long) {
+                    return new SimpleStringProperty(String.format("%d", (Long) value));
+                } else if (value instanceof Integer) {
+                    return new SimpleStringProperty(String.format("%d", (Integer) value));
+                } else {
+                    return new SimpleStringProperty(value.toString());
+                }
+            });
+            table.getColumns().add(tableColumn);
+        }
+
+        // 添加數據
+        table.getItems().addAll(results);
+
+        return table;
+    }
+
+    private void showDashboard(List<Map<String, Object>> results) {
+        Stage stage = new Stage();
+        stage.setTitle("差分隱私測試結果儀表板");
+
+        // 創建主要容器
+        VBox root = new VBox(10);
+        root.setPadding(new Insets(10));
+        root.setStyle("-fx-background-color: white;");
+
+        // 創建標題
+        Label titleLabel = new Label("差分隱私測試結果摘要");
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
+        HBox titleBox = new HBox(titleLabel);
+        titleBox.setAlignment(Pos.CENTER);
+        root.getChildren().add(titleBox);
+
+        // 創建第一行圖表容器
+        HBox firstRowCharts = new HBox(20);
+        firstRowCharts.setPadding(new Insets(20));
+
+        // 創建隱私保障vs信息損失的散點圖
+        ScatterChart<Number, Number> privacyChart = createPrivacyChart(results);
+        privacyChart.setTitle("隱私保障 vs 信息損失");
+        privacyChart.setPrefSize(400, 300);
+
+        // 創建可用性比較圖
+        BarChart<String, Number> usabilityChart = createUsabilityChart(results);
+        usabilityChart.setTitle("參數組合可用性比較");
+        usabilityChart.setPrefSize(400, 300);
+
+        // 創建整體可用性分布圖
+        PieChart overallUsabilityChart = createOverallUsabilityChart(results);
+        overallUsabilityChart.setTitle("整體可用性分布");
+        overallUsabilityChart.setPrefSize(400, 300);
+
+        firstRowCharts.getChildren().addAll(privacyChart, usabilityChart, overallUsabilityChart);
+
+        // 創建第二行圖表容器
+        HBox secondRowCharts = new HBox(20);
+        secondRowCharts.setPadding(new Insets(20));
+
+        // 創建隱私保障 vs 分類準確率圖
+        ScatterChart<Number, Number> privacyAccuracyChart = createPrivacyAccuracyChart(results);
+        privacyAccuracyChart.setTitle("隱私保障 vs 分類準確率");
+        privacyAccuracyChart.setPrefSize(400, 300);
+
+        // 創建各 ε 值的可用性統計圖
+        BarChart<String, Number> epsilonUsabilityChart = createEpsilonUsabilityChart(results);
+        epsilonUsabilityChart.setTitle("各 ε 值的可用性統計");
+        epsilonUsabilityChart.setPrefSize(400, 300);
+
+        // 創建一個空的佔位圖表以保持佈局平衡
+        VBox placeholder = new VBox();
+        placeholder.setPrefSize(400, 300);
+
+        secondRowCharts.getChildren().addAll(privacyAccuracyChart, epsilonUsabilityChart, placeholder);
+
+        // 創建摘要表格
+        TableView<Map<String, Object>> summaryTable = createSummaryTable(results);
+        summaryTable.setPrefSize(1200, 200);
+
+        // 添加所有元素到主容器
+        root.getChildren().addAll(firstRowCharts, secondRowCharts, summaryTable);
+
+        // 創建滾動面板
+        ScrollPane scrollPane = new ScrollPane(root);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        // 設置場景
+        Scene scene = new Scene(scrollPane, 1600, 900);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    private PieChart createAnonymizationPieChart(List<Map<String, Object>> results) {
+        PieChart pieChart = new PieChart();
+        
+        // 計算平均匿名化比例
+        double totalAgeAnonymized = 0;
+        double totalGenderAnonymized = 0;
+        double totalDateAnonymized = 0;
+        double totalFullyAnonymized = 0;
+        
+        for (Map<String, Object> result : results) {
+            int dataSize = (Integer) result.get("資料筆數");
+            totalAgeAnonymized += (Integer) result.get("年齡匿名筆數") / (double) dataSize;
+            totalGenderAnonymized += (Integer) result.get("性別匿名筆數") / (double) dataSize;
+            totalDateAnonymized += (Integer) result.get("通報日期匿名筆數") / (double) dataSize;
+            totalFullyAnonymized += (Integer) result.get("完全匿名化筆數") / (double) dataSize;
+        }
+        
+        int size = results.size();
+        pieChart.getData().add(new PieChart.Data("年齡匿名", totalAgeAnonymized / size * 100));
+        pieChart.getData().add(new PieChart.Data("性別匿名", totalGenderAnonymized / size * 100));
+        pieChart.getData().add(new PieChart.Data("日期匿名", totalDateAnonymized / size * 100));
+        pieChart.getData().add(new PieChart.Data("完全匿名", totalFullyAnonymized / size * 100));
+        
+        return pieChart;
+    }
+
+    private BarChart<String, Number> createUsabilityChart(List<Map<String, Object>> results) {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        xAxis.setLabel("參數組合");
+        yAxis.setLabel("可用性");
+
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("可用性");
+
+        for (Map<String, Object> result : results) {
+            String param = String.format("ε=%.1f,δ=%.2f", 
+                (Double) result.get("epsilon"), 
+                (Double) result.get("delta"));
+            series.getData().add(new XYChart.Data<>(param, (Integer) result.get("是否可用")));
+        }
+
+        barChart.getData().add(series);
+        return barChart;
+    }
+
+    private PieChart createOverallUsabilityChart(List<Map<String, Object>> results) {
+        PieChart pieChart = new PieChart();
+        
+        // 計算可用和不可用的數量
+        int usable = 0;
+        int unusable = 0;
+        
+        for (Map<String, Object> result : results) {
+            if ((Integer) result.get("是否可用") == 1) {
+                usable++;
+            } else {
+                unusable++;
+            }
+        }
+        
+        pieChart.getData().add(new PieChart.Data("可用", usable));
+        pieChart.getData().add(new PieChart.Data("不可用", unusable));
+        
+        return pieChart;
+    }
+
+    private LineChart<String, Number> createEpsilonPerformanceChart(List<Map<String, Object>> results) {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        xAxis.setLabel("ε 值");
+        yAxis.setLabel("平均執行時間(毫秒)");
+
+        LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("執行時間");
+
+        // 按 ε 值分組計算平均執行時間
+        Map<Double, List<Long>> epsilonGroups = new HashMap<>();
+        for (Map<String, Object> result : results) {
+            double epsilon = (Double) result.get("epsilon");
+            long executionTime = (Long) result.get("執行時間(毫秒)");
+            epsilonGroups.computeIfAbsent(epsilon, k -> new ArrayList<>()).add(executionTime);
+        }
+
+        // 計算每個 ε 值的平均執行時間
+        for (Map.Entry<Double, List<Long>> entry : epsilonGroups.entrySet()) {
+            double avgTime = entry.getValue().stream()
+                .mapToLong(Long::longValue)
+                .average()
+                .orElse(0.0);
+            series.getData().add(new XYChart.Data<>(String.format("ε=%.1f", entry.getKey()), avgTime));
+        }
+
+        lineChart.getData().add(series);
+        return lineChart;
+    }
+
+    private ScatterChart<Number, Number> createPrivacyAccuracyChart(List<Map<String, Object>> results) {
+        NumberAxis xAxis = new NumberAxis();
+        NumberAxis yAxis = new NumberAxis();
+        xAxis.setLabel("隱私保障");
+        yAxis.setLabel("分類準確率");
+
+        ScatterChart<Number, Number> chart = new ScatterChart<>(xAxis, yAxis);
+        
+        // 創建兩個系列，分別表示可用和不可用的結果
+        XYChart.Series<Number, Number> usableSeries = new XYChart.Series<>();
+        usableSeries.setName("可用");
+        XYChart.Series<Number, Number> unusableSeries = new XYChart.Series<>();
+        unusableSeries.setName("不可用");
+
+        for (Map<String, Object> result : results) {
+            double privacyGuarantee = (Double) result.get("隱私保障");
+            double classificationAccuracy = (Double) result.get("分類準確率");
+            int isUsable = (Integer) result.get("是否可用");
+            
+            if (isUsable == 1) {
+                usableSeries.getData().add(new XYChart.Data<>(privacyGuarantee, classificationAccuracy));
+            } else {
+                unusableSeries.getData().add(new XYChart.Data<>(privacyGuarantee, classificationAccuracy));
+            }
+        }
+
+        chart.getData().addAll(usableSeries, unusableSeries);
+        return chart;
+    }
+
+    private BarChart<String, Number> createEpsilonUsabilityChart(List<Map<String, Object>> results) {
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        xAxis.setLabel("ε 值");
+        yAxis.setLabel("可用性比例");
+
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("可用性比例");
+
+        // 按 ε 值分組計算可用性比例
+        Map<Double, List<Integer>> epsilonGroups = new HashMap<>();
+        for (Map<String, Object> result : results) {
+            double epsilon = (Double) result.get("epsilon");
+            int isUsable = (Integer) result.get("是否可用");
+            epsilonGroups.computeIfAbsent(epsilon, k -> new ArrayList<>()).add(isUsable);
+        }
+
+        // 計算每個 ε 值的可用性比例
+        for (Map.Entry<Double, List<Integer>> entry : epsilonGroups.entrySet()) {
+            double usabilityRatio = entry.getValue().stream()
+                .mapToInt(Integer::intValue)
+                .average()
+                .orElse(0.0) * 100;
+            series.getData().add(new XYChart.Data<>(String.format("ε=%.1f", entry.getKey()), usabilityRatio));
+        }
+
+        barChart.getData().add(series);
+        return barChart;
     }
 
 } 

@@ -140,6 +140,12 @@ public class DifferentialPrivacyService {
         for (String attribute : attributes) {
             // System.out.println("\n處理欄位：" + attribute);
             switch (attribute) {
+                case "身分證":
+                    arxData.getDefinition().setAttributeType(attribute, AttributeType.IDENTIFYING_ATTRIBUTE);
+                    arxData.getDefinition().setDataType(attribute, DataType.STRING);
+                    // System.out.println("  - 類型：識別欄位");
+                    // System.out.println("  - 資料型態：字串");
+                    break;
                 case "年齡":
                     arxData.getDefinition().setAttributeType(attribute, AttributeType.QUASI_IDENTIFYING_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.INTEGER);
@@ -188,12 +194,12 @@ public class DifferentialPrivacyService {
                     // System.out.println("  - 說明：確診狀態為敏感資訊");
                     break;
                 default:
-                    // 未定義泛化層級的欄位設為敏感欄位
-                    arxData.getDefinition().setAttributeType(attribute, AttributeType.SENSITIVE_ATTRIBUTE);
+                    // 未定義泛化層級的欄位設為非敏感欄位
+                    arxData.getDefinition().setAttributeType(attribute, AttributeType.INSENSITIVE_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.STRING);
-                    // System.out.println("  - 類型：敏感欄位（未定義泛化層級）");
+                    // System.out.println("  - 類型：非敏感欄位（未定義泛化層級）");
                     // System.out.println("  - 資料型態：字串");
-                    // System.out.println("  - 警告：此欄位未定義泛化層級，已設為敏感欄位");
+                    // System.out.println("  - 警告：此欄位未定義泛化層級，已設為非敏感欄位");
                     break;
             }
         }
@@ -235,7 +241,7 @@ public class DifferentialPrivacyService {
             
             // 為直接標記為敏感屬性的欄位添加隱私模型
             for (String attribute : arxData.getDefinition().getSensitiveAttributes()) {
-                config.addPrivacyModel(new EntropyLDiversity(attribute, 2));
+                config.addPrivacyModel(new EntropyLDiversity(attribute, 1));
             }
             
             if (isDataIndependent) {
