@@ -7,11 +7,28 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/styles/ag-grid.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/styles/ag-theme-alpine.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.css" rel="stylesheet">
     <style>
         .container { margin-top: 2rem; }
         .card { margin-bottom: 1rem; }
         .stats-card { background-color: #f8f9fa; }
         .grid-container { height: 500px; width: 100%; }
+        .chart-container { height: 300px; margin-bottom: 1rem; }
+        .metric-card {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .metric-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -38,47 +55,75 @@
                                 <input type="number" class="form-control" id="lValue" value="2" min="2" step="0.1">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="mb-3">
-                                <label class="form-label">準識別符</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="年齡" id="qiAge" checked>
-                                    <label class="form-check-label" for="qiAge">年齡</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="性別" id="qiGender" checked>
-                                    <label class="form-check-label" for="qiGender">性別</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="縣市" id="qiCity" checked>
-                                    <label class="form-check-label" for="qiCity">縣市</label>
-                                </div>
+                                <label for="epsilon" class="form-label">Epsilon</label>
+                                <input type="number" class="form-control" id="epsilon" value="1.0" min="0.1" step="0.1">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="delta" class="form-label">Delta</label>
+                                <input type="number" class="form-control" id="delta" value="0.1" min="0" step="0.01">
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">處理資料</button>
+                    <button type="submit" class="btn btn-primary">執行匿名化</button>
                 </form>
             </div>
         </div>
 
-        <!-- 統計資訊卡片 -->
-        <div class="card stats-card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">處理結果統計</h5>
+        <!-- 關鍵指標卡片 -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="privacyScore">-</div>
+                    <div class="metric-label">隱私保障分數</div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <p><strong>K 值：</strong><span id="statsK">-</span></p>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="utilityScore">-</div>
+                    <div class="metric-label">資料可用性</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="anonymizationRate">-</div>
+                    <div class="metric-label">匿名化率</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="processingTime">-</div>
+                    <div class="metric-label">處理時間(秒)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 圖表區域 -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">隱私保障 vs 資料可用性</h5>
                     </div>
-                    <div class="col-md-3">
-                        <p><strong>L 值：</strong><span id="statsL">-</span></p>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="privacyUtilityChart"></canvas>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <p><strong>資料筆數：</strong><span id="statsRows">-</span></p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">匿名化分布</h5>
                     </div>
-                    <div class="col-md-3">
-                        <p><strong>資訊損失率：</strong><span id="statsLoss">-</span></p>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="anonymizationDistributionChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -97,6 +142,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html> 

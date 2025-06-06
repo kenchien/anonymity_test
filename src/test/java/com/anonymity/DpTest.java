@@ -482,7 +482,8 @@ public class DpTest extends Application {
         System.out.println("\n=== 所有測試完成 ===");
 
         // 修改開啟儀表板的部分
-        /* try {
+        try {
+            /*
             // 確保在 JavaFX 應用程式執行緒中執行
             Platform.runLater(() -> {
                 try {
@@ -503,10 +504,11 @@ public class DpTest extends Application {
                     break;
                 }
             }
+            */
         } catch (Exception e) {
             System.err.println("初始化儀表板時發生錯誤: " + e.getMessage());
             e.printStackTrace();
-        } */
+        } 
     }
     
     private void saveTestResultsToExcel(List<Map<String, Object>> results, String filePath) throws IOException {
@@ -521,7 +523,7 @@ public class DpTest extends Application {
                 "delta", 
                 "資料筆數", 
                 "執行時間(毫秒)", 
-                "是否可用"
+                "是否可用",
                 "完全匿名化筆數",
                 "年齡匿名筆數",
                 "性別匿名筆數",

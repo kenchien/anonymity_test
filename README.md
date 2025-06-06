@@ -112,7 +112,7 @@
 1. 差分隱私匿名化
    - 支援資料相依和資料獨立兩種模式
    - 可調整 epsilon 和 delta 參數
-   - 自動處理超時情況（60秒）
+
 
 2. 測試框架
    - 自動生成測試資料
@@ -278,8 +278,12 @@
    ```
 4. 運行應用程式：
    ```bash
-   mvn spring-boot:run
+   mvn spring-boot:run -DskipTests
    ```
+
+應用程式：http://localhost:8089
+本地開發環境：http://localhost:8089/swagger-ui.html
+API 文件：http://localhost:8089/api-docs
 
 ### 執行測試
 1. 執行測試
@@ -293,16 +297,9 @@
    - 查看生成的 Excel 和 TXT 檔案
    - 分析各項評估指標
 
-### Swagger UI
-啟動應用程式後，可以通過以下 URL 訪問 Swagger UI：
-```
-http://localhost:8089/swagger-ui.html
-```
-
 ## 注意事項
 1. 測試資料會自動生成，預設為 2000 筆
-2. 匿名化過程有 60 秒的超時限制
-3. 結果檔案會儲存在 C:\Ken 目錄下
+2. 結果檔案會儲存在 C:\Ken 目錄下
 4. 建議使用較新版本的 Java 運行環境
 
 ## 授權

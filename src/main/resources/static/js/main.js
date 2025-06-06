@@ -21,76 +21,144 @@ const gridOptions = {
     domLayout: 'autoHeight'
 };
 
-// 初始化網格
+// 圖表實例
+let privacyUtilityChart;
+let anonymizationDistributionChart;
+
+// 初始化網格和圖表
 document.addEventListener('DOMContentLoaded', function() {
+    // 初始化 AG Grid
     const gridDiv = document.querySelector('#myGrid');
     new agGrid.Grid(gridDiv, gridOptions);
     gridApi = gridOptions.api;
+
+    // 初始化圖表
+    initializeCharts();
+
+    // 綁定表單提交事件
+    document.getElementById('anonymizeForm').addEventListener('submit', handleFormSubmit);
 });
 
+// 初始化圖表
+function initializeCharts() {
+    // 隱私保障 vs 資料可用性圖表
+    const privacyUtilityCtx = document.getElementById('privacyUtilityChart').getContext('2d');
+    privacyUtilityChart = new Chart(privacyUtilityCtx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: '資料點',
+                data: [],
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: '隱私保障'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: '資料可用性'
+                    }
+                }
+            }
+        }
+    });
+
+    // 匿名化分布圖表
+    const anonymizationDistributionCtx = document.getElementById('anonymizationDistributionChart').getContext('2d');
+    anonymizationDistributionChart = new Chart(anonymizationDistributionCtx, {
+        type: 'pie',
+        data: {
+            labels: ['完全匿名', '部分匿名', '未匿名'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 206, 86, 0.5)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
 // 處理表單提交
-document.getElementById('anonymizeForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+async function handleFormSubmit(event) {
+    event.preventDefault();
     
-    // 獲取表單值
-    const k = parseInt(document.getElementById('kValue').value);
-    const l = parseFloat(document.getElementById('lValue').value);
-    
-    // 獲取選中的準識別符
-    const quasiIdentifiers = [];
-    if (document.getElementById('qiAge').checked) quasiIdentifiers.push('年齡');
-    if (document.getElementById('qiGender').checked) quasiIdentifiers.push('性別');
-    if (document.getElementById('qiCity').checked) quasiIdentifiers.push('縣市');
-    
-    // 準備請求資料
-    const requestData = {
-        data: window.testData || [], // 假設我們有測試資料
-        k: k,
-        l: l,
-        quasiIdentifiers: quasiIdentifiers,
-        sensitiveAttributes: ['疾病', '檢驗結果', '是否確診']
+    const formData = {
+        k: parseInt(document.getElementById('kValue').value),
+        l: parseFloat(document.getElementById('lValue').value),
+        epsilon: parseFloat(document.getElementById('epsilon').value),
+        delta: parseFloat(document.getElementById('delta').value)
     };
-    
+
     try {
-        // 發送請求
-        const response = await fetch('/api/privacy/anonymize', {
+        const response = await fetch('/api/differential-privacy/apply', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(requestData)
+            body: JSON.stringify(formData)
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            // 更新統計資訊
-            updateStatistics(result.statistics);
-            
-            // 更新網格資料
-            gridApi.setRowData(result.data);
-            
-            // 顯示成功訊息
-            alert('資料處理成功！');
-        } else {
-            throw new Error(result.message || '處理失敗');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('處理失敗：' + error.message);
-    }
-});
 
-// 更新統計資訊
-function updateStatistics(stats) {
-    document.getElementById('statsK').textContent = stats.k;
-    document.getElementById('statsL').textContent = stats.l;
-    document.getElementById('statsRows').textContent = stats.rows;
-    document.getElementById('statsLoss').textContent = (stats.informationLoss * 100).toFixed(2) + '%';
+        if (!response.ok) {
+            throw new Error('API 請求失敗');
+        }
+
+        const result = await response.json();
+        updateDashboard(result);
+    } catch (error) {
+        console.error('處理請求時發生錯誤:', error);
+        alert('處理請求時發生錯誤: ' + error.message);
+    }
+}
+
+// 更新儀表板
+function updateDashboard(data) {
+    // 更新關鍵指標
+    document.getElementById('privacyScore').textContent = (data.privacyScore * 100).toFixed(1) + '%';
+    document.getElementById('utilityScore').textContent = (data.utilityScore * 100).toFixed(1) + '%';
+    document.getElementById('anonymizationRate').textContent = (data.anonymizationRate * 100).toFixed(1) + '%';
+    document.getElementById('processingTime').textContent = data.processingTime.toFixed(2);
+
+    // 更新隱私保障 vs 資料可用性圖表
+    privacyUtilityChart.data.datasets[0].data = data.privacyUtilityData.map(point => ({
+        x: point.privacy,
+        y: point.utility
+    }));
+    privacyUtilityChart.update();
+
+    // 更新匿名化分布圖表
+    anonymizationDistributionChart.data.datasets[0].data = [
+        data.fullyAnonymized,
+        data.partiallyAnonymized,
+        data.notAnonymized
+    ];
+    anonymizationDistributionChart.update();
+
+    // 更新資料表格
+    gridApi.setRowData(data.result);
 }
 
 // 生成測試資料
