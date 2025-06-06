@@ -272,13 +272,13 @@ public class DpTest extends Application {
     @Test
     public void testDpDependentLoop() throws Exception {
         // 定義要測試的 epsilon 和 delta 值
-        //double[] epsilons = {5.0,4.0,3.0, 2.0};
-        //double[] deltas = {0.9, 0.7, 0.5, 0.3};
-        double[] epsilons = {4.0,3.0};
-        double[] deltas = { 0.9, 0.7, 0.5};
+        double[] epsilons = {5.0, 4.0, 3.0, 2.0, 1.0};
+        double[] deltas = {0.9, 0.7, 0.5, 0.3, 0.1, 0.05};
+        //double[] epsilons = {4.0,3.0};
+        //double[] deltas = { 0.9, 0.7, 0.5};
 
         // 生成測試數據
-        List<Map<String, String>> testData = DpTestDataGenerator.generateTestData(2000);
+        List<Map<String, String>> testData = DpTestDataGenerator.generateTestData(5000);
         
         // 儲存原始資料（只儲存一次）
         String originalFilePath = String.format("C:\\Ken\\ori_dp_%d.xlsx", testData.size());

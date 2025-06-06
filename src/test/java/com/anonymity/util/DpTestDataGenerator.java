@@ -62,7 +62,7 @@ public class DpTestDataGenerator {
         LocalDate startDate = LocalDate.now().minusDays(30);
         
         for (int i = 0; i < count; i++) {
-            Map<String, String> row = new HashMap<>();
+            Map<String, String> row = new LinkedHashMap<>();  // 使用 LinkedHashMap 來保持插入順序
             
             // 生成身分證字號
             row.put("身分證", generateTaiwanID());
@@ -74,14 +74,9 @@ public class DpTestDataGenerator {
             // 生成性別
             row.put("性別", GENDERS[random.nextInt(GENDERS.length)]);
             
-            // 生成郵遞區號 (100-116)
-            int zipcode = 166 + random.nextInt(88);
-            //row.put("郵遞區號", String.valueOf(zipcode));
-            
             // 生成縣市
-            //row.put("縣市", CITIES[random.nextInt(3)]);//CITIES.length
+            row.put("縣市", CITIES[random.nextInt(5)]);
             
-
             // 生成通報日期 (過去30天內)
             LocalDate reportDate = startDate.plusDays(random.nextInt(30));
             row.put("通報日期", reportDate.format(dateFormatter));
@@ -91,13 +86,10 @@ public class DpTestDataGenerator {
             row.put("是否確診", isConfirmed ? "1" : "0");
 
             // 生成疾病
-            //row.put("疾病", DISEASES[random.nextInt(DISEASES.length)]);
+            row.put("疾病", DISEASES[random.nextInt(DISEASES.length)]);
             
-             
             // 生成檢驗結果
-            //row.put("檢驗結果", TEST_RESULTS[random.nextInt(TEST_RESULTS.length)]);
-            
-
+            row.put("檢驗結果", TEST_RESULTS[random.nextInt(TEST_RESULTS.length)]);
             
             data.add(row);
         }

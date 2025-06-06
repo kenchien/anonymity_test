@@ -125,22 +125,29 @@ public class PrivacyMetricsCalculator {
             if (originalColumnStats != null && anonymizedColumnStats != null) {
                 // 計算該欄位的統計特性差異
                 double columnLoss = 0.0;
+                int statCount = 0;
+                
                 for (String stat : originalColumnStats.keySet()) {
                     double originalValue = originalColumnStats.get(stat);
                     double anonymizedValue = anonymizedColumnStats.get(stat);
                     
                     // 避免除以零
                     if (originalValue != 0) {
-                        columnLoss += Math.abs((anonymizedValue - originalValue) / originalValue);
+                        // 計算相對差異並限制在 0-1 範圍內
+                        double relativeDiff = Math.abs((anonymizedValue - originalValue) / originalValue);
+                        columnLoss += Math.min(relativeDiff, 1.0);
+                        statCount++;
                     }
                 }
                 
-                totalLoss += columnLoss / originalColumnStats.size();
-                columnCount++;
+                if (statCount > 0) {
+                    totalLoss += columnLoss / statCount;
+                    columnCount++;
+                }
             }
         }
         
-        return columnCount > 0 ? totalLoss / columnCount : 1.0;
+        return columnCount > 0 ? Math.min(totalLoss / columnCount, 1.0) : 1.0;
     }
     
     /**

@@ -138,9 +138,14 @@ public class DifferentialPrivacyService {
         // System.out.println("\n=== 欄位設定詳情 ===");
         // 根據欄位名稱設定屬性型態和層級
         for (String attribute : attributes) {
-            // System.out.println("\n處理欄位：" + attribute);
+            //識別欄位:身分證/手機/姓名
+            //準識別欄位:年齡/性別/縣市/通報日期/郵遞區號
+            //敏感欄位:是否確診/疾病/檢驗結果
+            //非敏感欄位:其他
             switch (attribute) {
                 case "身分證":
+                case "手機":
+                case "姓名":
                     arxData.getDefinition().setAttributeType(attribute, AttributeType.IDENTIFYING_ATTRIBUTE);
                     arxData.getDefinition().setDataType(attribute, DataType.STRING);
                     // System.out.println("  - 類型：識別欄位");
@@ -192,6 +197,20 @@ public class DifferentialPrivacyService {
                     // System.out.println("  - 類型：敏感欄位");
                     // System.out.println("  - 資料型態：整數");
                     // System.out.println("  - 說明：確診狀態為敏感資訊");
+                    break;
+                case "疾病":
+                    arxData.getDefinition().setAttributeType(attribute, AttributeType.SENSITIVE_ATTRIBUTE);
+                    arxData.getDefinition().setDataType(attribute, DataType.STRING);
+                    // System.out.println("  - 類型：敏感欄位");
+                    // System.out.println("  - 資料型態：字串");
+                    // System.out.println("  - 說明：疾病為敏感資訊");
+                    break;
+                case "檢驗結果":
+                    arxData.getDefinition().setAttributeType(attribute, AttributeType.SENSITIVE_ATTRIBUTE);
+                    arxData.getDefinition().setDataType(attribute, DataType.STRING);
+                    // System.out.println("  - 類型：敏感欄位");
+                    // System.out.println("  - 資料型態：字串");
+                    // System.out.println("  - 說明：檢驗結果為敏感資訊");
                     break;
                 default:
                     // 未定義泛化層級的欄位設為非敏感欄位
