@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.deidentifier.arx.*;
 import org.deidentifier.arx.criteria.EDDifferentialPrivacy;
 import org.deidentifier.arx.criteria.EntropyLDiversity;
+import org.deidentifier.arx.criteria.DistinctLDiversity;
 import org.deidentifier.arx.AttributeType.Hierarchy;
 import org.deidentifier.arx.AttributeType.Hierarchy.DefaultHierarchy;
 import org.springframework.stereotype.Service;
@@ -255,12 +256,16 @@ public class DifferentialPrivacyService {
             
             // 配置差分隱私
             ARXConfiguration config = ARXConfiguration.create();
-            config.setSuppressionLimit(0.2d);
+            config.setSuppressionLimit(0.1d);
             config.setHeuristicSearchTimeLimit(60); // 設定 60 秒超時
             
             // 為直接標記為敏感屬性的欄位添加隱私模型
             for (String attribute : arxData.getDefinition().getSensitiveAttributes()) {
-                config.addPrivacyModel(new EntropyLDiversity(attribute, 1));
+                //比較寬鬆的設定,適用於測試與開發
+                config.addPrivacyModel(new DistinctLDiversity(attribute, 2));
+
+                //照理說第二參數應該是在2~10之間,但是可以設定1/1.4這樣
+                //config.addPrivacyModel(new EntropyLDiversity(attribute, 1.4));
             }
             
             if (isDataIndependent) {

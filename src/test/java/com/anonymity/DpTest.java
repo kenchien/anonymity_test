@@ -272,10 +272,10 @@ public class DpTest extends Application {
     @Test
     public void testDpDependentLoop() throws Exception {
         // 定義要測試的 epsilon 和 delta 值
-        double[] epsilons = {5.0, 4.0, 3.0, 2.0, 1.0};
-        double[] deltas = {0.9, 0.7, 0.5, 0.3, 0.1, 0.05};
-        //double[] epsilons = {4.0,3.0};
-        //double[] deltas = { 0.9, 0.7, 0.5};
+        //double[] epsilons = {5.0, 4.0, 3.0, 2.0, 1.0};
+        //double[] deltas = {0.9, 0.7, 0.5, 0.3, 0.1};
+        double[] epsilons = {4.0,3.0,2.0};
+        double[] deltas = { 0.5,0.3,0.1,0.01,0.001};
 
         // 生成測試數據
         List<Map<String, String>> testData = DpTestDataGenerator.generateTestData(5000);
@@ -367,8 +367,8 @@ public class DpTest extends Application {
                     // 根據原始欄位名稱設定索引
                     int ageIndex = originalHeaders.indexOf("年齡");
                     int genderIndex = originalHeaders.indexOf("性別");
+                    int cityIndex = originalHeaders.indexOf("縣市");
                     int dateIndex = originalHeaders.indexOf("通報日期");
-                    //int cityIndex = originalHeaders.indexOf("縣市");
                     
                     
                     
@@ -386,7 +386,7 @@ public class DpTest extends Application {
                         ageAnonymizedCount = anonymizedData.size();  // 減去標題行
                         genderAnonymizedCount = anonymizedData.size();
                         dateAnonymizedCount = anonymizedData.size();
-                        //cityAnonymizedCount = anonymizedData.size();
+                        cityAnonymizedCount = anonymizedData.size();
                         fullyAnonymizedCount = anonymizedData.size();
                     } else {
                         // 正常處理每筆資料
@@ -409,7 +409,7 @@ public class DpTest extends Application {
                             if (row.get(ageIndex).equals("*")) ageAnonymizedCount++;
                             if (row.get(genderIndex).equals("*")) genderAnonymizedCount++;
                             if (row.get(dateIndex).equals("*")) dateAnonymizedCount++;
-                            //if (row.get(cityIndex).equals("*")) cityAnonymizedCount++;
+                            if (row.get(cityIndex).equals("*")) cityAnonymizedCount++;
                         }
                     }
                     
@@ -419,12 +419,12 @@ public class DpTest extends Application {
                     if (ageAnonymizedCount == testData.size() ||
                         genderAnonymizedCount == testData.size() ||
                         dateAnonymizedCount == testData.size() ||
-                        //cityAnonymizedCount == testData.size() ||
+                        cityAnonymizedCount == testData.size() ||
                         fullyAnonymizedCount == testData.size() ||
                         ageAnonymizedCount > threshold ||
                         genderAnonymizedCount > threshold ||
                         dateAnonymizedCount > threshold ||
-                        //cityAnonymizedCount > threshold ||
+                        cityAnonymizedCount > threshold ||
                         fullyAnonymizedCount > threshold) {
                         isUsable = 0;
                     }
@@ -439,8 +439,8 @@ public class DpTest extends Application {
                     testResult.put("完全匿名化筆數", fullyAnonymizedCount);
                     testResult.put("年齡匿名筆數", ageAnonymizedCount);
                     testResult.put("性別匿名筆數", genderAnonymizedCount);
+                    testResult.put("縣市匿名筆數", cityAnonymizedCount);
                     testResult.put("通報日期匿名筆數", dateAnonymizedCount);
-                    //testResult.put("縣市匿名筆數", cityAnonymizedCount);
                     testResult.put("信息損失", metrics.get("informationLoss"));
                     testResult.put("效用損失", metrics.get("utilityLoss"));
                     testResult.put("隱私保障", metrics.get("privacyGuarantee"));
@@ -452,8 +452,8 @@ public class DpTest extends Application {
                     System.out.printf("完全匿名化筆數: %d,", fullyAnonymizedCount);
                     System.out.printf("年齡匿名: %d,", ageAnonymizedCount);
                     System.out.printf("性別匿名: %d,", genderAnonymizedCount);
+                    System.out.printf("縣市匿名: %d,", cityAnonymizedCount);
                     System.out.printf("通報日期匿名: %d,", dateAnonymizedCount);
-                    //System.out.printf("縣市匿名: %d,", cityAnonymizedCount);
                     System.out.printf("信息損失: %.2f,", metrics.get("informationLoss"));
                     System.out.printf("效用損失: %.2f,", metrics.get("utilityLoss"));
                     System.out.printf("隱私保障: %.2f%n", metrics.get("privacyGuarantee"));
@@ -472,17 +472,17 @@ public class DpTest extends Application {
         // 儲存所有測試結果到一個 Excel 檔案
         String summaryFilePath = "C:\\Ken\\dp_test_summary.xlsx";
         saveTestResultsToExcel(testResults, summaryFilePath);
-        //System.out.println("\n=== 測試結果摘要已儲存至: " + summaryFilePath);
+        System.out.println("\n=== 測試結果摘要已儲存至: " + summaryFilePath);
         
         // 同時儲存為 TXT 檔案
         String txtFilePath = "C:\\Ken\\dp_test_summary.txt";
         saveTestResultsToTxt(testResults, txtFilePath);
         //System.out.println("=== 測試結果摘要已儲存至: " + txtFilePath);
         
-        //System.out.println("\n=== 所有測試完成 ===");
+        System.out.println("\n=== 所有測試完成 ===");
 
         // 修改開啟儀表板的部分
-        try {
+        /* try {
             // 確保在 JavaFX 應用程式執行緒中執行
             Platform.runLater(() -> {
                 try {
@@ -506,7 +506,7 @@ public class DpTest extends Application {
         } catch (Exception e) {
             System.err.println("初始化儀表板時發生錯誤: " + e.getMessage());
             e.printStackTrace();
-        }
+        } */
     }
     
     private void saveTestResultsToExcel(List<Map<String, Object>> results, String filePath) throws IOException {
@@ -521,16 +521,18 @@ public class DpTest extends Application {
                 "delta", 
                 "資料筆數", 
                 "執行時間(毫秒)", 
+                "是否可用"
                 "完全匿名化筆數",
                 "年齡匿名筆數",
                 "性別匿名筆數",
+                "縣市匿名筆數",
                 "通報日期匿名筆數",
                 "信息損失", 
                 "效用損失", 
                 "隱私保障", 
                 "平均值差異",
-                "分類準確率",
-                "是否可用"
+                "分類準確率"
+                
             };
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -543,13 +545,16 @@ public class DpTest extends Application {
                 Map<String, Object> result = results.get(i);
                 
                 int col = 0;
-                row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("epsilon")));
-                row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("delta")));
+                row.createCell(col++).setCellValue(String.format("%f", (Double) result.get("epsilon")));
+                row.createCell(col++).setCellValue(String.format("%.3f", (Double) result.get("delta")));
                 row.createCell(col++).setCellValue((Integer) result.get("資料筆數"));
                 row.createCell(col++).setCellValue((Long) result.get("執行時間(毫秒)"));
+                // 是否可用
+                row.createCell(col++).setCellValue((Integer) result.get("是否可用"));
                 row.createCell(col++).setCellValue((Integer) result.get("完全匿名化筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("年齡匿名筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("性別匿名筆數"));
+                row.createCell(col++).setCellValue((Integer) result.get("縣市匿名筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("通報日期匿名筆數"));
                 row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("信息損失")));
                 row.createCell(col++).setCellValue(String.format("%.2f", (Double) result.get("效用損失")));
@@ -559,11 +564,10 @@ public class DpTest extends Application {
                 Object meanDiff = result.get("平均值差異");
                 Object classAcc = result.get("分類準確率");
                 
-                row.createCell(col++).setCellValue(meanDiff != null ? String.format("%.2f", (Double) meanDiff) : "0.00");
+                row.createCell(col++).setCellValue(meanDiff != null ? String.format("%.3f", (Double) meanDiff) : "0.000");
                 row.createCell(col++).setCellValue(classAcc != null ? String.format("%.2f", (Double) classAcc) : "0.00");
                 
-                // 是否可用
-                row.createCell(col++).setCellValue((Integer) result.get("是否可用"));
+                
             }
             
             // 自動調整欄寬
@@ -610,8 +614,8 @@ public class DpTest extends Application {
             // 寫入資料行
             for (Map<String, Object> result : results) {
                 List<String> row = new ArrayList<>();
-                row.add(String.format("%.2f", (Double) result.get("epsilon")));
-                row.add(String.format("%.2f", (Double) result.get("delta")));
+                row.add(String.format("%f", (Double) result.get("epsilon")));
+                row.add(String.format("%.3f", (Double) result.get("delta")));
                 row.add(String.valueOf(result.get("資料筆數")));
                 row.add(String.valueOf(result.get("執行時間(毫秒)")));
                 row.add(String.valueOf(result.get("完全匿名化筆數")));
@@ -627,7 +631,7 @@ public class DpTest extends Application {
                 Object meanDiff = result.get("平均值差異");
                 Object classAcc = result.get("分類準確率");
                 
-                row.add(meanDiff != null ? String.format("%.2f", (Double) meanDiff) : "0.00");
+                row.add(meanDiff != null ? String.format("%.3f", (Double) meanDiff) : "0.000");
                 row.add(classAcc != null ? String.format("%.2f", (Double) classAcc) : "0.00");
                 
                 // 是否可用
