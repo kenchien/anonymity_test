@@ -22,6 +22,10 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- 效能相關參數 -->
+        <maven.compile.fork>true</maven.compile.fork>
+        <maven.compile.meminitial>2g</maven.compile.meminitial>
+        <maven.compile.maxmem>4g</maven.compile.maxmem>
     </properties>
 
     <repositories>
@@ -161,10 +165,7 @@
                         <include>**/Test*.java</include>
                         <include>**/*TestCase.java</include>
                     </includes>
-                    <argLine>
-                        -Xms256m -Xmx1g 
-                        -XX:+UseParallelGC
-                    </argLine>
+                    
                 </configuration>
             </plugin>
             <plugin>

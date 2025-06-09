@@ -274,8 +274,8 @@ public class DpTest extends Application {
         // 定義要測試的 epsilon 和 delta 值
         //double[] epsilons = {5.0, 4.0, 3.0, 2.0, 1.0};
         //double[] deltas = {0.9, 0.7, 0.5, 0.3, 0.1};
-        double[] epsilons = {4.0,3.0,2.0};
-        double[] deltas = { 0.5,0.3,0.1,0.01,0.001};
+        double[] epsilons = {5.0,4.0,3.0,2.0,1.0};
+        double[] deltas = { 0.99,0.9,0.7,0.5,0.3,0.1,0.01};
 
         // 生成測試數據
         List<Map<String, String>> testData = DpTestDataGenerator.generateTestData(5000);
@@ -300,7 +300,7 @@ public class DpTest extends Application {
                     continue;
                 }else{
                     testCount++;
-                    System.out.printf("\n執行第 %d/%d 次測試 (epsilon=%.2f, delta=%.5f)%n", 
+                    System.out.printf("\n執行第 %d/%d 次測試 (epsilon=%.1f, delta=%.3f)%n", 
                         testCount,epsilons.length * deltas.length-1, epsilon, delta);
                 }
 
@@ -436,7 +436,7 @@ public class DpTest extends Application {
                     testResult.put("資料筆數", testData.size());
                     testResult.put("執行時間(毫秒)", executionTime.toMillis());
                     testResult.put("是否可用", isUsable);
-                    testResult.put("完全匿名化筆數", fullyAnonymizedCount);
+                    //testResult.put("完全匿名化筆數", fullyAnonymizedCount);
                     testResult.put("年齡匿名筆數", ageAnonymizedCount);
                     testResult.put("性別匿名筆數", genderAnonymizedCount);
                     testResult.put("縣市匿名筆數", cityAnonymizedCount);
@@ -449,7 +449,7 @@ public class DpTest extends Application {
                     testResults.add(testResult);
                     
                     System.out.printf("%d 毫秒,", executionTime.toMillis());
-                    System.out.printf("完全匿名化筆數: %d,", fullyAnonymizedCount);
+                    //System.out.printf("完全匿名化筆數: %d,", fullyAnonymizedCount);
                     System.out.printf("年齡匿名: %d,", ageAnonymizedCount);
                     System.out.printf("性別匿名: %d,", genderAnonymizedCount);
                     System.out.printf("縣市匿名: %d,", cityAnonymizedCount);
@@ -459,7 +459,7 @@ public class DpTest extends Application {
                     System.out.printf("隱私保障: %.2f%n", metrics.get("privacyGuarantee"));
                     
                     // 儲存匿名化結果
-                    String anonymizedFilePath = String.format("C:\\Ken\\dp_%.1f_%.2f_%d.xlsx", epsilon, delta, testData.size());
+                    String anonymizedFilePath = String.format("C:\\Ken\\dp_%.1f_%.3f_%d.xlsx", epsilon, delta, testData.size());
                     saveAnonymizedToExcel(anonymizedData, anonymizedFilePath);
                 } catch (Exception e) {
                     System.out.printf("測試執行時發生錯誤 (epsilon=%.1f, delta=%.2f) %s", 
@@ -524,7 +524,7 @@ public class DpTest extends Application {
                 "資料筆數", 
                 "執行時間(毫秒)", 
                 "是否可用",
-                "完全匿名化筆數",
+                //"完全匿名化筆數",
                 "年齡匿名筆數",
                 "性別匿名筆數",
                 "縣市匿名筆數",
@@ -547,13 +547,13 @@ public class DpTest extends Application {
                 Map<String, Object> result = results.get(i);
                 
                 int col = 0;
-                row.createCell(col++).setCellValue(String.format("%f", (Double) result.get("epsilon")));
+                row.createCell(col++).setCellValue(String.format("%.1f", (Double) result.get("epsilon")));
                 row.createCell(col++).setCellValue(String.format("%.3f", (Double) result.get("delta")));
                 row.createCell(col++).setCellValue((Integer) result.get("資料筆數"));
                 row.createCell(col++).setCellValue((Long) result.get("執行時間(毫秒)"));
                 // 是否可用
                 row.createCell(col++).setCellValue((Integer) result.get("是否可用"));
-                row.createCell(col++).setCellValue((Integer) result.get("完全匿名化筆數"));
+                //row.createCell(col++).setCellValue((Integer) result.get("完全匿名化筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("年齡匿名筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("性別匿名筆數"));
                 row.createCell(col++).setCellValue((Integer) result.get("縣市匿名筆數"));

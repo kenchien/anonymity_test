@@ -215,8 +215,8 @@
 評估資料匿名化後的隱私保護程度。
 
 計算方式：
-- 原始資料中「年齡」的熵值較低（因為值集中在 25-40）
-- 匿名化後「年齡」的熵值較高（因為值被泛化為區間）
+- 原始資料中「年齡」的熵值較低（因為值集中在 25-40），假設50
+- 匿名化後「年齡」的熵值更低（因為值被泛化為區間），假設40
 - 隱私保障 = 匿名化後熵值 / 原始熵值 ≈ 0.8
 
 意義：
@@ -280,7 +280,10 @@
    ```bash
    mvn spring-boot:run -DskipTests
    ```
-
+5.單純跑測試
+   ```
+   mvn test -Dtest=DpTest#testDpDependentLoop
+   ```
 應用程式：http://localhost:8089
 本地開發環境：http://localhost:8089/swagger-ui.html
 API 文件：http://localhost:8089/api-docs
